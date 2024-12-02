@@ -40,7 +40,7 @@ def part_one():
 
     report: list[int]
     for report in reports:
-        safe_reports += int(is_safe(report, ))
+        safe_reports += int(is_safe(report))
 
     print(f"Safe reports: {safe_reports}")
 
