@@ -1,12 +1,15 @@
+from collections import defaultdict
+from pathlib import Path
+
 import numpy as np
 
 
-def main():
+def read_input(file: Path) -> tuple[list[int], list[int]]:
     l1 = []
     l2 = []
 
     # read input into two lists
-    with open("input.txt", "r") as f:
+    with open(file, "r") as f:
         for line in f.readlines():
             out = line.split("   ")
             l1.append(int(out[0]))
@@ -14,6 +17,13 @@ def main():
 
     # check if both lists have the same length
     assert len(l1) == len(l2)
+
+    return l1, l2
+
+
+def part_one():
+    input_file = Path("input.txt")
+    l1, l2 = read_input(input_file)
 
     # sort lists
     l1.sort()
@@ -29,5 +39,24 @@ def main():
     print(f"Distance: {distance}")
 
 
+def part_two():
+    input_file = Path("input.txt")
+    l1, l2 = read_input(input_file)
+
+    appearances = defaultdict(int)
+
+    # count appearances
+    for i in l2:
+        appearances[i] += 1
+
+    # calculate similarity score
+    sum_ = 0
+    for i in l1:
+        sum_ += i * appearances[i]
+
+    print(f"Similarity Score: {sum_}")
+
+
 if __name__ == "__main__":
-    main()
+    part_one()
+    part_two()
