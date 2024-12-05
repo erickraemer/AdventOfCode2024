@@ -71,9 +71,9 @@ def part_two(file: Path) -> int:
         seq = copy(seq)
         i = 1
         while i < len(seq):
-            k = i - 1
+
             moves = 0
-            while k >= 0:
+            for k in range(i-1, -1, -1):
 
                 # stop when finding the same element backwards
                 if seq[i] == seq[k]:
@@ -84,8 +84,6 @@ def part_two(file: Path) -> int:
                     seq.insert(i, seq.pop(k))
                     i -= 1
                     moves += 1
-
-                k -= 1
 
             i += 1 + moves
         return seq
