@@ -1,15 +1,9 @@
+import curses
 import time
 from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Optional
-
-import numpy as np
-from collections import defaultdict
-from copy import deepcopy
-from pathlib import Path
-from typing import Optional
-import curses
 
 import numpy as np
 
