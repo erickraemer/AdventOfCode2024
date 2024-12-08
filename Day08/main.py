@@ -1,8 +1,6 @@
 import itertools
 from collections import defaultdict
-from itertools import combinations
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 
@@ -69,12 +67,12 @@ if __name__ == "__main__":
     assert test_one == 14, test_one
 
     po = part_one(Path("input.txt"))
-    print(f"Unique locations: {po}")
+    print(f"[1] Unique locations: {po}")
 
     test_two = part_two(Path("test.txt"))
     assert test_two == 34, test_two
 
     pt = part_two(Path("input.txt"))
-    print(f"Unique locations: {pt}")
+    print(f"[2] Unique locations: {pt}")
 
 
