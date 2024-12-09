@@ -63,11 +63,14 @@ def part_two(file: Path):
         while i < len(spaces):
             space = spaces[i]
 
+            if file[0] < space[0]:
+                break
+
             if space[1] == 0:
                 spaces.pop(i)
                 continue
 
-            if file[0] > space[0] and file[1] <= space[1]:
+            if file[1] <= space[1]:
                 spaces.append([file[0], file[1], '.'])
                 files[k][0] = space[0]
                 spaces[i][1] = space[1] - file[1]
