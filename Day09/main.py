@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from common.executor import execute
 
 def read_input(file: Path) -> list[int]:
 
@@ -89,18 +90,19 @@ def part_two(file: Path):
     return checksum
 
 
-def main():
-    test_one = part_one(Path("test.txt"))
-    assert test_one == 1928, test_one
-
-    po = part_one(Path("input.txt"))
-    print(f"[1] Checksum: {po}")
-
-    test_two = part_two(Path("test.txt"))
-    assert test_two == 2858, test_two
-
-    pt = part_two(Path("input.txt"))
-    print(f"[2] Checksum: {pt}")
-
 if __name__ == "__main__":
-    main()
+    execute(
+        Path("Day09/test.txt"),
+        Path("Day09/input.txt"),
+        part_one,
+        1928,
+        "[1] Checksum"
+    )
+
+    execute(
+        Path("Day09/test.txt"),
+        Path("Day09/input.txt"),
+        part_two,
+        2858,
+        "[2] Checksum"
+    )

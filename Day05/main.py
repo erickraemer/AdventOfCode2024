@@ -2,6 +2,8 @@ from collections import defaultdict
 from copy import copy
 from pathlib import Path
 
+from common.executor import execute
+
 
 def read_input(file: Path) -> tuple[list[tuple[int, int]], list[list[int]]]:
     with open(file, "r") as f:
@@ -103,19 +105,19 @@ def part_two(file: Path) -> int:
     return sum_
 
 
-def main():
-    test_one = part_one(Path("test.txt"))
-    assert test_one == 143, test_one
-
-    po = part_one(Path("input.txt"))
-    print(f"Middle page number sum (1): {po}")
-
-    test_two = part_two(Path("test.txt"))
-    assert test_two == 123, test_two
-
-    pt = part_two(Path("input.txt"))
-    print(f"Middle page number sum (2): {pt}")
-
-
 if __name__ == "__main__":
-    main()
+    execute(
+        Path("Day05/test.txt"),
+        Path("Day05/input.txt"),
+        part_one,
+        143,
+        "[1] Middle page number sum"
+    )
+
+    execute(
+        Path("Day05/test.txt"),
+        Path("Day05/input.txt"),
+        part_two,
+        123,
+        "[2] Middle page number sum"
+    )

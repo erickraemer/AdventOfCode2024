@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from common.executor import execute
+
 
 def load_input(file: Path) -> list[str]:
     text: list[str] = []
@@ -10,8 +12,8 @@ def load_input(file: Path) -> list[str]:
     return text
 
 
-def part_one():
-    text: list[str] = load_input(Path("input.txt"))
+def part_one(file: Path):
+    text: list[str] = load_input(file)
 
     word: str = "XMAS"
     w_len: int = len(word)
@@ -53,11 +55,11 @@ def part_one():
                 if s == word:
                     appearances += 1
 
-    print(f"XMAS Appearances: {appearances}")
+    return appearances
 
 
-def part_two():
-    text: list[str] = load_input(Path("input.txt"))
+def part_two(file: Path):
+    text: list[str] = load_input(file)
 
     word: str = "MAS"
     w_len: int = len(word)
@@ -102,9 +104,22 @@ def part_two():
                     appearances += 1
                     break
 
-    print(f"X-MAS Appearances: {appearances}")
+    return appearances
 
 
 if __name__ == "__main__":
-    part_one()
-    part_two()
+    execute(
+        Path("Day04/test.txt"),
+        Path("Day04/input.txt"),
+        part_one,
+        18,
+        "[1] XMAS Appearances"
+    )
+
+    execute(
+        Path("Day04/test.txt"),
+        Path("Day04/input.txt"),
+        part_two,
+        9,
+        "[2] X-MAS Appearances"
+    )

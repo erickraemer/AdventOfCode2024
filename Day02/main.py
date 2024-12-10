@@ -1,6 +1,8 @@
 from copy import copy
 from pathlib import Path
 
+from common.executor import execute
+
 
 def is_safe(report: list[int]) -> bool:
     if len(report) <= 1:
@@ -32,9 +34,8 @@ def load_input(file: Path) -> list[list[int]]:
     return reports
 
 
-def part_one():
-    input_file: Path = Path("input.txt")
-    reports: list[list[int]] = load_input(input_file)
+def part_one(file: Path):
+    reports: list[list[int]] = load_input(file)
 
     safe_reports: int = 0
 
@@ -42,12 +43,11 @@ def part_one():
     for report in reports:
         safe_reports += int(is_safe(report))
 
-    print(f"Safe reports: {safe_reports}")
+    return safe_reports
 
 
-def part_two():
-    input_file: Path = Path("input.txt")
-    reports: list[list[int]] = load_input(input_file)
+def part_two(file: Path):
+    reports: list[list[int]] = load_input(file)
 
     safe_reports: int = 0
 
@@ -68,9 +68,22 @@ def part_two():
 
         safe_reports += int(b)
 
-    print(f"Safe reports: {safe_reports}")
+    return safe_reports
 
 
 if __name__ == "__main__":
-    part_one()
-    part_two()
+    execute(
+        Path("Day02/test.txt"),
+        Path("Day02/input.txt"),
+        part_one,
+        2,
+        "[1] Safe Reports"
+    )
+
+    execute(
+        Path("Day02/test.txt"),
+        Path("Day02/input.txt"),
+        part_two,
+        4,
+        "[2] Safe Reports"
+    )

@@ -1,8 +1,11 @@
 import re
+from pathlib import Path
+
+from common.executor import execute
 
 
-def part_one():
-    with open("input.txt", "r") as f:
+def part_one(file: Path) -> int:
+    with open(file, "r") as f:
         s = f.read()
 
     pattern = re.compile(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)")
@@ -11,11 +14,11 @@ def part_one():
     for match in pattern.finditer(s):
         sum_ += int(match.group(1)) * int(match.group(2))
 
-    print(f"Sum: {sum_}")
+    return sum_
 
 
-def part_two():
-    with open("input.txt", "r") as f:
+def part_two(file: Path) -> int:
+    with open(file, "r") as f:
         s = f.read()
 
     pattern = re.compile(r"mul\(([0-9]{1,3}),([0-9]{1,3})\)|do\(\)|don't\(\)")
@@ -33,9 +36,21 @@ def part_two():
         else:
             enabled = (c == '(')
 
-    print(f"Sum: {sum_}")
-
+    return sum_
 
 if __name__ == "__main__":
-    part_one()
-    part_two()
+    execute(
+        Path("Day03/test01.txt"),
+        Path("Day03/input.txt"),
+        part_one,
+        161,
+        "[1] Safe Reports"
+    )
+
+    execute(
+        Path("Day03/test02.txt"),
+        Path("Day03/input.txt"),
+        part_two,
+        48,
+        "[2] Safe Reports"
+    )

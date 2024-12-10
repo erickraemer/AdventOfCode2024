@@ -7,6 +7,8 @@ from typing import Optional
 
 import numpy as np
 
+from common.executor import execute
+
 
 def read_input(file: Path) -> tuple[set[tuple[int, int]], np.ndarray, np.ndarray, np.ndarray]:
     obstacles: set[tuple[int, int]] = set()
@@ -46,7 +48,7 @@ def read_input(file: Path) -> tuple[set[tuple[int, int]], np.ndarray, np.ndarray
     return obstacles, guard_position, guard_orientation, map_shape
 
 
-def part_one(file: Path):
+def part_one(file: Path) -> set[tuple]:
     obstacles, guard_pos, guard_ori, map_shape = read_input(file)
 
     visited_positions: set[tuple] = set()
@@ -117,7 +119,8 @@ def find_loop(stdscr, obstacles, guard_pos, guard_ori, map_shape):
     while True:
 
         # visualize guard
-        draw(stdscr, obstacles, visited_positions, guard_pos, guard_ori, map_shape)
+        if stdscr is not None:
+            draw(stdscr, obstacles, visited_positions, guard_pos, guard_ori, map_shape)
 
         if guard_pos[0] not in range(map_shape[0]):
             return False
@@ -139,42 +142,51 @@ def find_loop(stdscr, obstacles, guard_pos, guard_ori, map_shape):
         visited_positions[next_pos_t].add(guard_pos_t)
         guard_pos = next_pos
 
-def part_two(file: Path):
+def part_two(file: Path, draw: bool = False) -> int:
     obstacles, guard_pos, guard_ori, map_shape = read_input(file)
     visited_pos = part_one(file)
 
     obstruction_pos = set()
 
-    for pos in visited_pos:
-        loop = curses.wrapper(
-            find_loop,
-            obstacles | {pos},
+    for i, pos in enumerate(visited_pos):
+
+        print(f"\rProcessing: {round(100 * i / len(visited_pos), 2)}%", end="", flush=True)
+
+        args = [obstacles | {pos},
             guard_pos,
             guard_ori,
             map_shape
-        )
+        ]
+
+        if draw:
+            loop = curses.wrapper(
+                find_loop,
+                *args
+            )
+        else:
+            loop = find_loop(None, *args)
 
         if loop:
             obstruction_pos.add(pos)
 
+
+    print("\r", end="", flush=True)
     return len(obstruction_pos)
-
-def main():
-    test_one = len(part_one(Path("test.txt")))
-    assert test_one == 41, test_one
-
-    po = len(part_one(Path("input.txt")))
-    print(f"Distinct positions: {po}")
-
-    # info: pycharm does not support ncurses,
-    # execute in terminal
-
-    test_two = part_two(Path("test.txt"))
-    assert test_two == 6, test_two
-
-    pt = part_two(Path("input.txt"))
-    print(f"Obstacle positions: {pt}")
 
 
 if __name__ == "__main__":
-    main()
+    execute(
+        Path("Day06/test.txt"),
+        Path("Day06/input.txt"),
+        part_one,
+        41,
+        "[1] Distinct positions"
+    )
+
+    execute(
+        Path("Day06/test.txt"),
+        Path("Day06/input.txt"),
+        part_two,
+        6,
+        "[2] Obstacle positions"
+    )

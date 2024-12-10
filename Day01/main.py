@@ -3,6 +3,8 @@ from pathlib import Path
 
 import numpy as np
 
+from common.executor import execute
+
 
 def read_input(file: Path) -> tuple[list[int], list[int]]:
     l1 = []
@@ -21,9 +23,8 @@ def read_input(file: Path) -> tuple[list[int], list[int]]:
     return l1, l2
 
 
-def part_one():
-    input_file = Path("input.txt")
-    l1, l2 = read_input(input_file)
+def part_one(file: Path):
+    l1, l2 = read_input(file)
 
     # sort lists
     l1.sort()
@@ -36,12 +37,12 @@ def part_one():
     # calculate the l1 norm between both vectors
     distance: int = int(np.sum(np.abs(v1 - v2)))
 
-    print(f"Distance: {distance}")
+    return distance
 
 
-def part_two():
-    input_file = Path("input.txt")
-    l1, l2 = read_input(input_file)
+
+def part_two(file: Path):
+    l1, l2 = read_input(file)
 
     appearances = defaultdict(int)
 
@@ -50,13 +51,27 @@ def part_two():
         appearances[i] += 1
 
     # calculate similarity score
-    sum_ = 0
+    similarity_score = 0
     for i in l1:
-        sum_ += i * appearances[i]
+        similarity_score += i * appearances[i]
 
-    print(f"Similarity Score: {sum_}")
+    return similarity_score
 
 
 if __name__ == "__main__":
-    part_one()
-    part_two()
+    execute(
+        Path("Day01/test.txt"),
+        Path("Day01/input.txt"),
+        part_one,
+        11,
+        "[1] Distance"
+    )
+
+    execute(
+        Path("Day01/test.txt"),
+        Path("Day01/input.txt"),
+        part_two,
+        31,
+        "[2] Similarity Score"
+    )
+

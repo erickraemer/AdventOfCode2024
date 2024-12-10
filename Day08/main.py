@@ -4,6 +4,8 @@ from pathlib import Path
 
 import numpy as np
 
+from common.executor import execute
+
 
 def read_input(file: Path) -> tuple[list[list[np.ndarray]], tuple[int, int]]:
     antennas: dict[str, list[np.ndarray]] = defaultdict(list)
@@ -63,16 +65,18 @@ def part_two(file: Path) -> int:
 
 
 if __name__ == "__main__":
-    test_one = part_one(Path("test.txt"))
-    assert test_one == 14, test_one
+    execute(
+        Path("Day08/test.txt"),
+        Path("Day08/input.txt"),
+        part_one,
+        14,
+        "[1] Unique locations"
+    )
 
-    po = part_one(Path("input.txt"))
-    print(f"[1] Unique locations: {po}")
-
-    test_two = part_two(Path("test.txt"))
-    assert test_two == 34, test_two
-
-    pt = part_two(Path("input.txt"))
-    print(f"[2] Unique locations: {pt}")
-
-
+    execute(
+        Path("Day08/test.txt"),
+        Path("Day08/input.txt"),
+        part_two,
+        34,
+        "[2] Unique locations"
+    )
