@@ -1,6 +1,7 @@
 import logging
 import timeit
 from collections.abc import Callable
+from numbers import Real
 from pathlib import Path
 from typing import Union, Iterable, Optional
 
@@ -27,7 +28,7 @@ def scale_time(time: float):
 def _test(test_file: Path, f: Callable, expected_result: int):
     time, ret = timeit.Timer(lambda: f(test_file)).timeit(1)
 
-    if not isinstance(ret, int):
+    if not isinstance(ret, Real):
         ret = len(ret)
 
     if ret != expected_result:
@@ -39,7 +40,7 @@ def _test(test_file: Path, f: Callable, expected_result: int):
 def _execute(input_file: Path, f: Callable[[Path], Union[int, Iterable]], msg: str):
     time, ret = timeit.Timer(lambda: f(input_file)).timeit(1)
 
-    if not isinstance(ret, int):
+    if not isinstance(ret, Real):
         ret = len(ret)
 
     print(f"{msg}:\n\t- result: {ret}\n\t- time: {scale_time(time)}\n")
