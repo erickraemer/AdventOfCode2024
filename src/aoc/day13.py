@@ -81,24 +81,91 @@ def brute_force(file: Path, pt_two: bool = False):
     result = int(np.sum(presses * np.array([3, 1])).item())
     return result
 
-def part_one(file: Path):
+def adj(m: np.ndarray):
+    a = np.empty_like(m)
+
+    a[:, 0, 0] = m[:, 1, 1]
+    a[:, 0, 1] = -m[:, 0, 1]
+    a[:, 1, 0] = -m[:, 1, 0]
+    a[:, 1, 1] = m[:, 0, 0]
+
+    return a
+
+def equation_based(file: Path, pt_two: bool = False):
+    data = read_input(file)
+    data = np.array([[t[0], t[2], t[1], *t[3:]] for t in data], dtype=int).reshape((-1, 6))
+
+    # A = [A.x B.x]
+    #     [A.y B.y]
+    A = data[:, :4].reshape((-1, 2, 2))
+
+    # Calculate determinate of A
+    # np.linalg.det() is to imprecise
+    A_det = A[:, 0, 0] * A[:, 1, 1] - A[:, 0, 1] * A[:, 1, 0]
+
+    # Calculate the adjugate matrix of A
+    # A_adj = [ B.y -B.x]
+    #         [-A.y  A.x]
+    A_adj = adj(A)
+
+    # Prize vector
+    # B = [P.x P.y]
+    B = data[:, 4:]
+
+    if pt_two:
+        B += int(1e+13)
+
+    # A_adj * B
+    X = A_adj @ B[:, :, None]
+
+    # Solution is valid if a and b are integers
+    # => (A_adj * B) mod det(A) == 0
+    is_int = np.sum(X % A_det[:, None, None], axis=1).squeeze() == 0
+
+    # Calculate a and b vector
+    # X = (A_adj * B) / det(A)
+    X = (X[is_int].squeeze() / A_det[is_int][:, None]).astype(int)
+
+    # Multiply by weight and sum up
+    W = np.array([3, 1]).T
+    result = int(np.sum(X @ W).item())
+
+    return result
+
+def part_one_bf(file: Path):
     return brute_force(file)
 
-def part_two(file: Path):
+def part_one_eq(file: Path):
+    return equation_based(file)
+
+def part_two_bf(file: Path):
     return brute_force(file, True)
 
+def part_two_eq(file: Path):
+    return equation_based(file, True)
+
 def main():
-    executor = Executor(
+    executor_bf = Executor(
         test_file=DATA / "t13.txt",
         input_file=DATA / "i13.txt",
-        f1=part_one,
-        f2=part_two
+        f1=part_one_bf,
+        f2=part_two_bf
     )
 
-    executor.test_one(480)
-    executor.one("Tokens")
+    executor_eq = Executor(
+        test_file=DATA / "t13.txt",
+        input_file=DATA / "i13.txt",
+        f1=part_one_eq,
+        f2=part_two_eq
+    )
 
-    executor.two("Tokens")
+    executor_bf.test_one(480)
+    executor_eq.test_one(480)
+    executor_bf.one("Binary Search")
+    executor_eq.one("Linear Equation")
+
+    executor_bf.two("Binary Search")
+    executor_eq.two("Linear Equation")
 
 
 if __name__ == "__main__":
