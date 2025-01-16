@@ -5,6 +5,8 @@ from numbers import Real
 from pathlib import Path
 from typing import Union, Iterable, Optional
 
+_REPEATS = 10
+
 timeit.template = """
 def inner(_it, _timer{init}):
     {setup}
@@ -26,7 +28,8 @@ def scale_time(time: float):
 
 
 def _test(test_file: Path, f: Callable, expected_result: int):
-    time, ret = timeit.Timer(lambda: f(test_file)).timeit(1)
+    time, ret = timeit.Timer(lambda: f(test_file)).timeit(_REPEATS)
+    time /= _REPEATS
 
     if not isinstance(ret, Real):
         ret = len(ret)
@@ -38,12 +41,13 @@ def _test(test_file: Path, f: Callable, expected_result: int):
 
 
 def _execute(input_file: Path, f: Callable[[Path], Union[int, Iterable]], msg: str):
-    time, ret = timeit.Timer(lambda: f(input_file)).timeit(1)
+    time, ret = timeit.Timer(lambda: f(input_file)).timeit(_REPEATS)
+    time /= _REPEATS
 
     if not isinstance(ret, Real):
         ret = len(ret)
 
-    print(f"{msg}:\n\t- result: {ret}\n\t- time: {scale_time(time)}\n")
+    print(f"{msg}:\n\t- result: {ret}\n\t- runs: {_REPEATS}\n\t- avg time: {scale_time(time)}\n")
 
 
 class Executor:
