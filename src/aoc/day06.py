@@ -1,17 +1,91 @@
-import curses
-import time
-from collections import defaultdict
-from copy import deepcopy
+import json
+from copy import copy, deepcopy
+from operator import itemgetter
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Iterable, Union
+from collections import ChainMap, defaultdict
 
 import numpy as np
 
 from aoc import DATA
-from src.aoc.common.executor import Executor
+from aoc.common.executor import Executor
+
+Coordinate = Union[tuple[int, int], np.ndarray]
+
+class ObstacleMap:
+    def __init__(self, obstacles: Iterable[tuple[int, int]], map_shape: tuple[int, int]):
+        self._yx = [[] for _ in range(map_shape[1])]
+        self._xy = [[] for _ in range(map_shape[0])]
+
+        for (x, y) in obstacles:
+            self._yx[y].append(x)
+            self._xy[x].append(y)
+
+        for li in self._yx:
+            li.sort()
+
+        for li in self._xy:
+            li.sort()
+
+    def next(self, pos: tuple[int, int], orientation: int):
+        if orientation == 0:
+            return self.right(pos)
+        if orientation == 1:
+            return self.down(pos)
+        if orientation == 2:
+            return self.left(pos)
+        return self.up(pos)
+
+    def up(self, pos: tuple[int, int]):
+        if pos[0] not in range(len(self._xy)):
+            return None
+
+        row = self._xy[pos[0]]
+        for i in range(len(row) - 1, -1, -1):
+
+            if row[i] < pos[1]:
+                return pos[0], row[i]
+
+        return None
+
+    def down(self, pos: tuple[int, int]):
+        if pos[0] not in range(len(self._xy)):
+            return None
+
+        row = self._xy[pos[0]]
+        for i in range(len(row)):
+
+            if row[i] > pos[1]:
+                return pos[0], row[i]
+
+        return None
+
+    def left(self, pos: tuple[int, int]):
+        if pos[1] not in range(len(self._yx)):
+            return None
+
+        col = self._yx[pos[1]]
+        for i in range(len(col) - 1, -1, -1):
+
+            if col[i] < pos[0]:
+                return col[i], pos[1]
+
+        return None
+
+    def right(self, pos: tuple[int, int]):
+        if pos[1] not in range(len(self._yx)):
+            return None
+
+        col = self._yx[pos[1]]
+        for i in range(len(col)):
+
+            if col[i] > pos[0]:
+                return col[i], pos[1]
+
+        return None
 
 
-def read_input(file: Path) -> tuple[set[tuple[int, int]], np.ndarray, np.ndarray, np.ndarray]:
+def read_input(file: Path) -> tuple[set[tuple[int, int]], np.ndarray, np.ndarray, tuple[int, int]]:
     obstacles: set[tuple[int, int]] = set()
     guard_position: Optional[np.ndarray] = None
     guard_orientation: Optional[np.ndarray] = None
@@ -19,7 +93,7 @@ def read_input(file: Path) -> tuple[set[tuple[int, int]], np.ndarray, np.ndarray
     # read input
     lines: list[str] = open(file, "r").read().split()
 
-    map_shape: np.ndarray = np.array([len(lines[0]), len(lines)])
+    map_shape: tuple[int, int] = (len(lines[0]), len(lines))
 
     ori_map = {
         '<': (-1, 0),
@@ -48,132 +122,185 @@ def read_input(file: Path) -> tuple[set[tuple[int, int]], np.ndarray, np.ndarray
 
     return obstacles, guard_position, guard_orientation, map_shape
 
+def in_bounds(pos: Coordinate, bounds: Coordinate) -> bool:
+    assert len(pos) == len(bounds)
 
-def part_one(file: Path) -> set[tuple]:
-    obstacles, guard_pos, guard_ori, map_shape = read_input(file)
+    return all(pos[i] in range(bounds[i]) for i in range(len(pos)))
 
-    visited_positions: set[tuple] = set()
+
+def part_one(file: Path) -> dict[tuple, tuple]:
+    obstacles, pos, ori, map_shape = read_input(file)
+
+    unique_positions: set[tuple[int, int]] = set()
     rot_m = np.array([[0, -1], [1, 0]])
 
     while True:
 
-        if guard_pos[0] not in range(map_shape[0]):
+        if not in_bounds(pos, map_shape):
             break
 
-        if guard_pos[1] not in range(map_shape[1]):
-            break
-
-        next_pos: np.ndarray = guard_pos + guard_ori
+        next_pos: np.ndarray = pos + ori
 
         if tuple(next_pos) in obstacles:
-            guard_ori = rot_m @ guard_ori
+            ori = rot_m @ ori
             continue
 
-        visited_positions.add(tuple(guard_pos))
-        guard_pos = next_pos
+        unique_positions.add(tuple(pos))
+        pos = next_pos
 
-    return visited_positions
-
-
-ORI_MAP = {
-    (-1, 0): '<',
-    (0, -1): '^',
-    (1, 0): '>',
-    (0, 1) : 'v'
-}
-
-def draw(stdscr, obstacles, visited_positions, guard_pos, guard_ori, map_shape, size=16):
-
-    size = min(map_shape[0], size)
-
-    # Clear screen
-    curses.curs_set(0)
-    stdscr.clear()
-
-    for y in range(size):
-        for x in range(size):
-            pos = guard_pos + np.array([-size // 2 + x, -size // 2 + y])
-
-            if np.array_equal(pos, guard_pos):
-                stdscr.addstr(y, x * 2, ORI_MAP[tuple(guard_ori)] + ' ')
-            elif tuple(pos) in obstacles:
-                stdscr.addstr(y, x * 2, '# ')
-            elif tuple(pos) in visited_positions:
-                stdscr.addstr(y, x * 2, 'x ')
-            elif pos[0] not in range(map_shape[0]):
-                stdscr.addstr(y, x * 2, '  ')
-            elif pos[1] not in range(map_shape[1]):
-                stdscr.addstr(y, x * 2, '  ')
-            else:
-                stdscr.addstr(y, x * 2, '. ')
-
-    stdscr.refresh()
-    time.sleep(1 / 60)
+    return unique_positions
 
 
-def find_loop(stdscr, obstacles, guard_pos, guard_ori, map_shape):
-    guard_pos = deepcopy(guard_pos)
-    guard_ori = deepcopy(guard_ori)
-    visited_positions: dict[tuple, set[tuple]] = defaultdict(set)
+def create_lookup(obstacle: tuple[int], omap: ObstacleMap) -> dict[tuple[int], tuple[int]]:
+    lookup = dict()
+
+    # left case
+    next_obs = omap.next((obstacle[0]-1, obstacle[1]), 1)
+    next_obs = (next_obs[0], next_obs[1]-1, 1) if next_obs is not None else None
+
+    p = (obstacle[0]-1, obstacle[1], 0)
+    lookup[p] = next_obs
+    pos = (obstacle[0], obstacle[1]-1)
+    end = omap.next(obstacle, 2)
+    while True:
+        pos = omap.next(pos, 2)
+
+        if pos is None:
+            break
+
+        if end is not None and pos[0] <= end[0]:
+            break
+
+        lookup[(pos[0], pos[1]+1, 3)] = p
+
+    # down case
+    next_obs = omap.next((obstacle[0], obstacle[1]+1), 0)
+    next_obs = (next_obs[0]-1, next_obs[1], 0) if next_obs is not None else None
+
+    p = (obstacle[0], obstacle[1]+1, 3)
+    lookup[p] = next_obs
+    pos = (obstacle[0]-1, obstacle[1])
+    end = omap.next(obstacle, 1)
+    while True:
+        pos = omap.next(pos, 1)
+
+        if pos is None:
+            break
+
+        if end is not None and pos[1] >= end[1]:
+            break
+
+        lookup[(pos[0]+1, pos[1], 2)] = p
+
+    # right case
+    next_obs = omap.next((obstacle[0]+1, obstacle[1]), 3)
+    next_obs = (next_obs[0], next_obs[1] + 1, 3) if next_obs is not None else None
+
+    p = (obstacle[0] + 1, obstacle[1], 2)
+    lookup[p] = next_obs
+    pos = (obstacle[0], obstacle[1]+1)
+    end = omap.next(obstacle, 0)
+    while True:
+        pos = omap.next(pos, 0)
+
+        if pos is None:
+            break
+
+        if end is not None and pos[0] >= end[0]:
+            break
+
+        lookup[(pos[0], pos[1]-1, 1)] = p
+
+    # up case
+    next_obs = omap.next((obstacle[0], obstacle[1]-1), 2)
+    next_obs = (next_obs[0]+1, next_obs[1], 2) if next_obs is not None else None
+
+    p = (obstacle[0], obstacle[1]-1, 1)
+    lookup[p] = next_obs
+    pos = (obstacle[0]+1, obstacle[1])
+    end = omap.next(obstacle, 3)
+    while True:
+        pos = omap.next(pos, 3)
+
+        if pos is None:
+            break
+
+        if end is not None and pos[1] <= end[1]:
+            break
+
+        lookup[(pos[0]-1, pos[1], 0)] = p
+
+    return lookup
+
+
+def part_two(file: Path) -> set[tuple[int]]:
+
+    obstacles, guard_pos, guard_ori, map_shape = read_input(file)
+
+    ori_map = {
+        (1, 0): 0,  # right
+        (0, 1): 1,  # down
+        (-1, 0): 2, # left
+        (0, -1): 3  # up
+    }
+
+    rotation_map = {v:k for k,v in ori_map.items()}
+
+    omap = ObstacleMap(obstacles, map_shape)
+    move_lookup: dict[tuple[int], tuple[int]] = dict()
+    temp_lookup: dict[tuple[int], tuple[int]] = dict()
+    state_lookup = ChainMap(temp_lookup, move_lookup)
+    loop_positions: set[tuple[int]] = set()
+    checked_obstacles = set()
+
     rot_m = np.array([[0, -1], [1, 0]])
 
-    while True:
+    while in_bounds(guard_pos+guard_ori, map_shape):
 
-        # visualize guard
-        if stdscr is not None:
-            draw(stdscr, obstacles, visited_positions, guard_pos, guard_ori, map_shape)
+        orientation: int = ori_map[tuple(guard_ori)]
+        pose = (*tuple(guard_pos), orientation)
+        obstacle = tuple(guard_pos + guard_ori)
 
-        if guard_pos[0] not in range(map_shape[0]):
-            return False
-
-        if guard_pos[1] not in range(map_shape[1]):
-            return False
-
-        next_pos: np.ndarray = guard_pos + guard_ori
-        next_pos_t = tuple(next_pos)
-
-        if tuple(next_pos) in obstacles:
+        if obstacle in obstacles:
             guard_ori = rot_m @ guard_ori
             continue
 
-        guard_pos_t = tuple(guard_pos)
-        if guard_pos_t in visited_positions[next_pos_t]:
-            return True
+        visited_poses: set[tuple[int]] = set()
 
-        visited_positions[next_pos_t].add(guard_pos_t)
-        guard_pos = next_pos
+        temp_lookup.clear()
+        temp_lookup.update(create_lookup(obstacle, omap))
 
-def part_two(file: Path, draw: bool = False) -> int:
-    obstacles, guard_pos, guard_ori, map_shape = read_input(file)
-    visited_pos = part_one(file)
+        if obstacle not in checked_obstacles:
+            while True:
 
-    obstruction_pos = set()
+                if pose is None:
+                    # no loop
+                    break
 
-    for i, pos in enumerate(visited_pos):
+                if pose in visited_poses:
+                    # loop
+                    loop_positions.add(obstacle)
+                    break
 
-        print(f"\rProcessing: {round(100 * i / len(visited_pos), 2)}%", end="", flush=True)
+                visited_poses.add(pose)
 
-        args = [obstacles | {pos},
-            guard_pos,
-            guard_ori,
-            map_shape
-        ]
+                if pose not in state_lookup:
+                    orientation_ = pose[-1]
+                    next_pose = omap.next(pose[:2], (orientation_+1)%4)
 
-        if draw:
-            loop = curses.wrapper(
-                find_loop,
-                *args
-            )
-        else:
-            loop = find_loop(None, *args)
+                    if next_pose is not None:
+                        rot = rotation_map[(orientation_-1)%4]
+                        next_pose = (next_pose[0] + rot[0], next_pose[1] + rot[1], (orientation_+1)%4)
 
-        if loop:
-            obstruction_pos.add(pos)
+                    move_lookup[pose] =  next_pose
 
+                pose = state_lookup[pose]
 
-    print("\r", end="", flush=True)
-    return len(obstruction_pos)
+        checked_obstacles.add(obstacle)
 
+        guard_pos += guard_ori
+
+    return loop_positions
 
 def main():
     executor = Executor(
@@ -184,10 +311,13 @@ def main():
     )
 
     executor.test_one(41)
-    executor.one("Distinct positions")
+    executor.one("Unique positions")
 
     executor.test_two(6)
-    executor.two("Obstacle positions")
+    executor.two("Loop positions")
 
 if __name__ == "__main__":
     main()
+
+
+
