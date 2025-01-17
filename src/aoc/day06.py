@@ -1,16 +1,13 @@
-import json
-from copy import copy, deepcopy
-from operator import itemgetter
+from collections import ChainMap
 from pathlib import Path
-from typing import Optional, Iterable, Union
-from collections import ChainMap, defaultdict
+from typing import Optional, Iterable, Final
 
 import numpy as np
 
 from aoc import DATA
 from aoc.common.executor import Executor
 
-Coordinate = Union[tuple[int, int], np.ndarray]
+Coord = tuple[int, int]
 
 class ObstacleMap:
     def __init__(self, obstacles: Iterable[tuple[int, int]], map_shape: tuple[int, int]):
@@ -122,31 +119,62 @@ def read_input(file: Path) -> tuple[set[tuple[int, int]], np.ndarray, np.ndarray
 
     return obstacles, guard_position, guard_orientation, map_shape
 
-def in_bounds(pos: Coordinate, bounds: Coordinate) -> bool:
+def in_bounds(pos: Coord, bounds: Coord) -> bool:
     assert len(pos) == len(bounds)
 
     return all(pos[i] in range(bounds[i]) for i in range(len(pos)))
 
+def get_input(file: Path) -> tuple[list[str], Coord, int]:
+    lines: list[str] = open(file, "r").read().split()
 
-def part_one(file: Path) -> dict[tuple, tuple]:
-    obstacles, pos, ori, map_shape = read_input(file)
+    guard_orientation: dict[chr, int] = {
+        '>': 0,
+        'v': 1,
+        '<': 2,
+        '^': 3
+    }
 
-    unique_positions: set[tuple[int, int]] = set()
-    rot_m = np.array([[0, -1], [1, 0]])
+    def find_guard() -> tuple[Coord, int]:
+        for y in range(len(lines)):
+            for x in range(len(lines[y])):
+                c: chr = lines[y][x]
+                if c in guard_orientation:
+                    return (x, y), guard_orientation[c]
+
+    g_pos, g_ori = find_guard()
+    return lines, g_pos, g_ori
+
+def part_one(file: Path) -> set[Coord]:
+    map_, g_pos, g_o_idx = get_input(file)
+
+    orientations: Final[list[Coord]] = [
+        (1, 0),
+        (0, 1),
+        (-1, 0),
+        (0, -1)
+    ]
+
+    unique_positions: set[Coord] = set()
 
     while True:
 
-        if not in_bounds(pos, map_shape):
+        unique_positions.add(g_pos)
+
+        x, y = g_pos
+        ox, oy = orientations[g_o_idx]
+        xn, yn = x+ox, y+oy
+
+        if not (0 <= xn < len(map_[0])):
             break
 
-        next_pos: np.ndarray = pos + ori
+        if not (0 <= yn < len(map_)):
+            break
 
-        if tuple(next_pos) in obstacles:
-            ori = rot_m @ ori
+        if map_[yn][xn] == '#':
+            g_o_idx = (g_o_idx + 1) % len(orientations)
             continue
 
-        unique_positions.add(tuple(pos))
-        pos = next_pos
+        g_pos = xn , yn
 
     return unique_positions
 
