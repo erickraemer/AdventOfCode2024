@@ -18,8 +18,12 @@ def inner(_it, _timer{init}):
 """
 
 def scale_time(time: float):
+    ms = round(time*1e+3,2)
+    if str(ms)[0] == '0':
+        return f"{round(time*1e+6,2)}μs"
+
     if str(time)[0] == '0':
-        return f"{round(time*1000,2)}ms"
+        return f"{ms}ms"
 
     if time < 60:
         return f"{round(time,2)}s"
