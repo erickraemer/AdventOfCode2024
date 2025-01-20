@@ -31,8 +31,8 @@ def scale_time(time: float):
     return f"{int(time/60)}m {int(time%60)}s"
 
 
-def _test(test_file: Path, f: Callable, expected_result: int):
-    time, ret = timeit.Timer(lambda: f(test_file)).timeit(_REPEATS)
+def _test(test_file: Path, f: Callable, expected_result: int, *args):
+    time, ret = timeit.Timer(lambda: f(test_file, *args)).timeit(_REPEATS)
     time /= _REPEATS
 
     if not isinstance(ret, Real):
@@ -44,8 +44,8 @@ def _test(test_file: Path, f: Callable, expected_result: int):
         logging.info(f"~ Test passed ({scale_time(time)})")
 
 
-def _execute(input_file: Path, f: Callable[[Path], Union[int, Iterable]], msg: str):
-    time, ret = timeit.Timer(lambda: f(input_file)).timeit(_REPEATS)
+def _execute(input_file: Path, f: Callable[[Path], Union[int, Iterable]], msg: str, *args):
+    time, ret = timeit.Timer(lambda: f(input_file, *args)).timeit(_REPEATS)
     time /= _REPEATS
 
     if not isinstance(ret, Real):
@@ -63,32 +63,32 @@ class Executor:
         self._f1 = f1
         self._f2 = f2
 
-    def test_one(self, expected_result: int):
+    def test_one(self, expected_result: int, *args):
         if not self._test_file.is_file():
             logging.warning(f"Test: {self._test_file} not found!")
             return
 
-        _test(self._test_file, self._f1, expected_result)
+        _test(self._test_file, self._f1, expected_result, *args)
 
-    def test_two(self, expected_result: int):
+    def test_two(self, expected_result: int, *args):
         test_file = self._test_file_2 if self._test_file_2 is not None else self._test_file
 
         if not test_file.is_file():
             logging.warning(f"Test: {test_file} not found!")
             return
 
-        _test(test_file, self._f2, expected_result)
+        _test(test_file, self._f2, expected_result, *args)
 
-    def one(self, output_description: str):
+    def one(self, output_description: str, *args):
         if not self._input_file.is_file():
             logging.warning(f"Executor: {self._input_file} not found!")
             return
 
-        _execute(self._input_file, self._f1, f"[1] {output_description}")
+        _execute(self._input_file, self._f1, f"[1] {output_description}", *args)
 
-    def two(self, output_description: str):
+    def two(self, output_description: str, *args):
         if not self._input_file.is_file():
             logging.warning(f"Executor: {self._input_file} not found!")
             return
 
-        _execute(self._input_file, self._f2, f"[2] {output_description}")
+        _execute(self._input_file, self._f2, f"[2] {output_description}", *args)
