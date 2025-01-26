@@ -31,7 +31,7 @@ def scale_time(time: float):
     return f"{int(time/60)}m {int(time%60)}s"
 
 
-def _test(test_file: Path, f: Callable, expected_result: int, *args):
+def _test(test_file: Path, f: Callable, expected_result: int, n: int, *args):
     time, ret = timeit.Timer(lambda: f(test_file, *args)).timeit(_REPEATS)
     time /= _REPEATS
 
@@ -39,9 +39,9 @@ def _test(test_file: Path, f: Callable, expected_result: int, *args):
         ret = len(ret)
 
     if ret != expected_result:
-        logging.error(f"~ Test failed: Expected {expected_result}, got {ret}")
+        logging.error(f"~ Test {n} failed: Expected {expected_result}, got {ret}")
     else:
-        logging.info(f"~ Test passed ({scale_time(time)})")
+        logging.info(f"~ Test {n} passed ({scale_time(time)})")
 
 
 def _execute(input_file: Path, f: Callable[[Path], Union[int, Iterable]], msg: str, *args):
@@ -68,7 +68,7 @@ class Executor:
             logging.warning(f"Test: {self._test_file} not found!")
             return
 
-        _test(self._test_file, self._f1, expected_result, *args)
+        _test(self._test_file, self._f1, expected_result, 1, *args)
 
     def test_two(self, expected_result: int, *args):
         test_file = self._test_file_2 if self._test_file_2 is not None else self._test_file
@@ -77,7 +77,7 @@ class Executor:
             logging.warning(f"Test: {test_file} not found!")
             return
 
-        _test(test_file, self._f2, expected_result, *args)
+        _test(test_file, self._f2, expected_result, 2, *args)
 
     def one(self, output_description: str, *args):
         if not self._input_file.is_file():
