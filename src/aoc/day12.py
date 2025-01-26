@@ -39,8 +39,8 @@ def part_one_rec(
     for (yn, xn) in ((y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1)):
 
         inc_perimeter: bool = (
-            not in_bounds((yn, xn), bounds) or
-            data[yn][xn] != char
+                not in_bounds((yn, xn), bounds) or
+                data[yn][xn] != char
         )
 
         if inc_perimeter:
@@ -54,6 +54,7 @@ def part_one_rec(
         part_one_rec(yn, xn, data, visited, perimeter, group)
 
     return group
+
 
 def common(data: list[str], perimeter: list[list[int]], pt_one: bool):
     visited: list[list[bool]] = [[False] * len(d) for d in data]
@@ -72,11 +73,13 @@ def common(data: list[str], perimeter: list[list[int]], pt_one: bool):
 
     return price
 
+
 def part_one(file: Path):
     data: Final[list[str]] = read_input(file)
     perimeter: list[list[int]] = [[0] * len(d) for d in data]
 
     return common(data, perimeter, True)
+
 
 def detect_edge(x0: int, y0: int, pd: list[str], perimeter: list[list[int]], vertical: bool = False):
     x1: Final[int] = int(vertical)
@@ -86,15 +89,16 @@ def detect_edge(x0: int, y0: int, pd: list[str], perimeter: list[list[int]], ver
     if pd[y0][x0] == pd[y0 - y1][x0 - x1]:
         return
 
-    b0: Final[bool] = pd[y0-x1][x0-y1] == pd[y0 - 1][x0 - 1]
-    b1: Final[bool] = pd[y0][x0] != pd[y0-x1][x0-y1]
-    b2: Final[bool] = pd[y0-y1][x0-x1] != pd[y0 - 1][x0 - 1]
+    b0: Final[bool] = pd[y0 - x1][x0 - y1] == pd[y0 - 1][x0 - 1]
+    b1: Final[bool] = pd[y0][x0] != pd[y0 - x1][x0 - y1]
+    b2: Final[bool] = pd[y0 - y1][x0 - x1] != pd[y0 - 1][x0 - 1]
 
     if b1 or (b0 and b2):
         perimeter[y0][x0] += 1
 
     if b2 or (b0 and b1):
         perimeter[y0 - y1][x0 - x1] += 1
+
 
 def calculate_perimeter(data: list[str]):
     pd = deepcopy(data)
@@ -113,7 +117,6 @@ def calculate_perimeter(data: list[str]):
     # scan data array horizontally and vertically to detect edges
     for y in range(1, len(pd)):
         for x in range(1, len(pd[y])):
-
             # possible to vectorize this loop for a speedup
             detect_edge(x, y, pd, perimeter)
             detect_edge(x, y, pd, perimeter, True)
@@ -123,11 +126,13 @@ def calculate_perimeter(data: list[str]):
 
     return perimeter
 
+
 def part_two(file: Path):
     data: Final[list[str]] = read_input(file)
     perimeter: list[list[int]] = calculate_perimeter(data)
 
     return common(data, perimeter, False)
+
 
 def main():
     executor = Executor(

@@ -19,6 +19,7 @@ def read_input(file: Path) -> list[tuple[int, list[int]]]:
 
     return equations
 
+
 def part_one_rec(result: int, accumulator: int, operands: list[int], index: int) -> bool:
     if accumulator == result:
         return True
@@ -33,8 +34,8 @@ def part_one_rec(result: int, accumulator: int, operands: list[int], index: int)
     index += 1
 
     return (
-        part_one_rec(result, accumulator * op, operands, index) or
-        part_one_rec(result, accumulator + op, operands, index)
+            part_one_rec(result, accumulator * op, operands, index) or
+            part_one_rec(result, accumulator + op, operands, index)
     )
 
 
@@ -47,6 +48,7 @@ def part_one(file: Path) -> int:
             sum_ += result
 
     return sum_
+
 
 def part_two_rec(result: int, accumulator: int, operands: list[int], index: int) -> bool:
     if accumulator == result:
@@ -62,9 +64,9 @@ def part_two_rec(result: int, accumulator: int, operands: list[int], index: int)
     index += 1
 
     return (
-        part_two_rec(result, accumulator * op, operands, index) or
-        part_two_rec(result, accumulator + op, operands, index) or
-        part_two_rec(result, int(str(accumulator) + str(op)), operands, index)
+            part_two_rec(result, accumulator * op, operands, index) or
+            part_two_rec(result, accumulator + op, operands, index) or
+            part_two_rec(result, int(str(accumulator) + str(op)), operands, index)
     )
 
 
@@ -77,6 +79,7 @@ def part_two(file: Path) -> int:
             sum_ += result
 
     return sum_
+
 
 def main():
     executor = Executor(
@@ -91,6 +94,7 @@ def main():
 
     executor.test_two(11387)
     executor.two("Calibration result")
+
 
 if __name__ == "__main__":
     main()

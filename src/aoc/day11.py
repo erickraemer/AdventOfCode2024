@@ -8,6 +8,7 @@ def read_input(file: Path) -> list[int]:
     arr = [int(i) for i in open(file, "r").read().split(" ")]
     return arr
 
+
 def rec(iteration: int, state: int, lookup: dict[tuple[int, int], int], max_depth: int):
     if iteration == max_depth:
         return 1
@@ -39,22 +40,26 @@ def rec(iteration: int, state: int, lookup: dict[tuple[int, int], int], max_dept
 
     return lookup[t]
 
+
 def common_part(file: Path, blinks: int) -> int:
     state = read_input(file)
 
     # populate lookup
     lookup: dict[(int, int), int] = {}
-    [rec(0, i, lookup, blinks)for i in state]
+    [rec(0, i, lookup, blinks) for i in state]
 
-    n_stones = sum(lookup[(0,i)] for i in state)
+    n_stones = sum(lookup[(0, i)] for i in state)
 
     return n_stones
+
 
 def part_one(file: Path) -> int:
     return common_part(file, 25)
 
+
 def part_two(file: Path) -> int:
     return common_part(file, 75)
+
 
 def main():
     executor = Executor(
@@ -68,6 +73,7 @@ def main():
     executor.one("Stones")
 
     executor.two("Stones")
+
 
 if __name__ == "__main__":
     main()

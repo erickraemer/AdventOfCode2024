@@ -13,6 +13,7 @@ MOVE_MAP = {
     'v': (0, 1)
 }
 
+
 def read_input(file: Path) -> tuple[Map, Coord, str]:
     data = open(file, "r").read()
 
@@ -44,12 +45,12 @@ def shift(map_: Map, x: int, y: int, vx: int, vy: int) -> bool:
     if c == '.':
         return True
 
-    xn, yn = x+vx, y+vy
+    xn, yn = x + vx, y + vy
     rec: bool = shift(map_, xn, yn, vx, vy)
 
     if rec:
         # swap
-        map_[y][x], map_[yn][xn] =  map_[yn][xn], map_[y][x]
+        map_[y][x], map_[yn][xn] = map_[yn][xn], map_[y][x]
 
     return rec
 
@@ -70,7 +71,7 @@ def part_one(file: Path) -> int:
     for m in movement:
         x, y = pos
         vx, vy = MOVE_MAP[m]
-        xn, yn = x+vx, y+vy
+        xn, yn = x + vx, y + vy
 
         if map_[yn][xn] == '.':
             map_[y][x], map_[yn][xn] = map_[yn][xn], map_[y][x]
@@ -87,6 +88,7 @@ def part_one(file: Path) -> int:
     sum_ = box_sum(map_, 'O')
 
     return sum_
+
 
 def widen(map_: Map):
     """
@@ -110,12 +112,13 @@ def widen(map_: Map):
 
             l.insert(k + 1, w_map[c])
 
+
 def shift_iter(map_: Map, x: int, y: int, vy: int):
     """
     Shift '[]' boxes in vy direction inplace along the y-axis if possible
     """
-    open_ = [(x, y+vy)]
-    closed = {(x,y): None}
+    open_ = [(x, y + vy)]
+    closed = {(x, y): None}
 
     while open_:
         x, y = open_.pop(0)
@@ -134,13 +137,13 @@ def shift_iter(map_: Map, x: int, y: int, vy: int):
 
         open_.append((x, yn))
         if map_[yn][x] != c:
-            open_.append((xn, y+vy))
+            open_.append((xn, y + vy))
 
         # since python 3.7+ dicts keep the insertion order
         closed[(x, y)] = None
         closed[(xn, y)] = None
 
-    for (x,y) in reversed(closed.keys()):
+    for (x, y) in reversed(closed.keys()):
         # swap
         map_[y][x], map_[y + vy][x] = map_[y + vy][x], map_[y][x]
 

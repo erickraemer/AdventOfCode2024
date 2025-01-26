@@ -9,6 +9,7 @@ from aoc.common.executor import Executor
 
 Coord = tuple[int, int]
 
+
 class ObstacleMap:
     def __init__(self, obstacles: Iterable[tuple[int, int]], map_shape: tuple[int, int]):
         self._yx = [[] for _ in range(map_shape[1])]
@@ -119,10 +120,12 @@ def read_input(file: Path) -> tuple[set[tuple[int, int]], np.ndarray, np.ndarray
 
     return obstacles, guard_position, guard_orientation, map_shape
 
+
 def in_bounds(pos: Coord, bounds: Coord) -> bool:
     assert len(pos) == len(bounds)
 
     return all(pos[i] in range(bounds[i]) for i in range(len(pos)))
+
 
 def get_input(file: Path) -> tuple[list[str], Coord, int]:
     lines: list[str] = open(file, "r").read().split()
@@ -144,6 +147,7 @@ def get_input(file: Path) -> tuple[list[str], Coord, int]:
     g_pos, g_ori = find_guard()
     return lines, g_pos, g_ori
 
+
 def part_one(file: Path) -> set[Coord]:
     map_, g_pos, g_o_idx = get_input(file)
 
@@ -162,7 +166,7 @@ def part_one(file: Path) -> set[Coord]:
 
         x, y = g_pos
         ox, oy = orientations[g_o_idx]
-        xn, yn = x+ox, y+oy
+        xn, yn = x + ox, y + oy
 
         if not (0 <= xn < len(map_[0])):
             break
@@ -174,7 +178,7 @@ def part_one(file: Path) -> set[Coord]:
             g_o_idx = (g_o_idx + 1) % len(orientations)
             continue
 
-        g_pos = xn , yn
+        g_pos = xn, yn
 
     return unique_positions
 
@@ -183,12 +187,12 @@ def create_lookup(obstacle: tuple[int], omap: ObstacleMap) -> dict[tuple[int], t
     lookup = dict()
 
     # left case
-    next_obs = omap.next((obstacle[0]-1, obstacle[1]), 1)
-    next_obs = (next_obs[0], next_obs[1]-1, 1) if next_obs is not None else None
+    next_obs = omap.next((obstacle[0] - 1, obstacle[1]), 1)
+    next_obs = (next_obs[0], next_obs[1] - 1, 1) if next_obs is not None else None
 
-    p = (obstacle[0]-1, obstacle[1], 0)
+    p = (obstacle[0] - 1, obstacle[1], 0)
     lookup[p] = next_obs
-    pos = (obstacle[0], obstacle[1]-1)
+    pos = (obstacle[0], obstacle[1] - 1)
     end = omap.next(obstacle, 2)
     while True:
         pos = omap.next(pos, 2)
@@ -199,15 +203,15 @@ def create_lookup(obstacle: tuple[int], omap: ObstacleMap) -> dict[tuple[int], t
         if end is not None and pos[0] <= end[0]:
             break
 
-        lookup[(pos[0], pos[1]+1, 3)] = p
+        lookup[(pos[0], pos[1] + 1, 3)] = p
 
     # down case
-    next_obs = omap.next((obstacle[0], obstacle[1]+1), 0)
-    next_obs = (next_obs[0]-1, next_obs[1], 0) if next_obs is not None else None
+    next_obs = omap.next((obstacle[0], obstacle[1] + 1), 0)
+    next_obs = (next_obs[0] - 1, next_obs[1], 0) if next_obs is not None else None
 
-    p = (obstacle[0], obstacle[1]+1, 3)
+    p = (obstacle[0], obstacle[1] + 1, 3)
     lookup[p] = next_obs
-    pos = (obstacle[0]-1, obstacle[1])
+    pos = (obstacle[0] - 1, obstacle[1])
     end = omap.next(obstacle, 1)
     while True:
         pos = omap.next(pos, 1)
@@ -218,15 +222,15 @@ def create_lookup(obstacle: tuple[int], omap: ObstacleMap) -> dict[tuple[int], t
         if end is not None and pos[1] >= end[1]:
             break
 
-        lookup[(pos[0]+1, pos[1], 2)] = p
+        lookup[(pos[0] + 1, pos[1], 2)] = p
 
     # right case
-    next_obs = omap.next((obstacle[0]+1, obstacle[1]), 3)
+    next_obs = omap.next((obstacle[0] + 1, obstacle[1]), 3)
     next_obs = (next_obs[0], next_obs[1] + 1, 3) if next_obs is not None else None
 
     p = (obstacle[0] + 1, obstacle[1], 2)
     lookup[p] = next_obs
-    pos = (obstacle[0], obstacle[1]+1)
+    pos = (obstacle[0], obstacle[1] + 1)
     end = omap.next(obstacle, 0)
     while True:
         pos = omap.next(pos, 0)
@@ -237,15 +241,15 @@ def create_lookup(obstacle: tuple[int], omap: ObstacleMap) -> dict[tuple[int], t
         if end is not None and pos[0] >= end[0]:
             break
 
-        lookup[(pos[0], pos[1]-1, 1)] = p
+        lookup[(pos[0], pos[1] - 1, 1)] = p
 
     # up case
-    next_obs = omap.next((obstacle[0], obstacle[1]-1), 2)
-    next_obs = (next_obs[0]+1, next_obs[1], 2) if next_obs is not None else None
+    next_obs = omap.next((obstacle[0], obstacle[1] - 1), 2)
+    next_obs = (next_obs[0] + 1, next_obs[1], 2) if next_obs is not None else None
 
-    p = (obstacle[0], obstacle[1]-1, 1)
+    p = (obstacle[0], obstacle[1] - 1, 1)
     lookup[p] = next_obs
-    pos = (obstacle[0]+1, obstacle[1])
+    pos = (obstacle[0] + 1, obstacle[1])
     end = omap.next(obstacle, 3)
     while True:
         pos = omap.next(pos, 3)
@@ -256,23 +260,22 @@ def create_lookup(obstacle: tuple[int], omap: ObstacleMap) -> dict[tuple[int], t
         if end is not None and pos[1] <= end[1]:
             break
 
-        lookup[(pos[0]-1, pos[1], 0)] = p
+        lookup[(pos[0] - 1, pos[1], 0)] = p
 
     return lookup
 
 
 def part_two(file: Path) -> set[tuple[int]]:
-
     obstacles, guard_pos, guard_ori, map_shape = read_input(file)
 
     ori_map = {
         (1, 0): 0,  # right
         (0, 1): 1,  # down
-        (-1, 0): 2, # left
+        (-1, 0): 2,  # left
         (0, -1): 3  # up
     }
 
-    rotation_map = {v:k for k,v in ori_map.items()}
+    rotation_map = {v: k for k, v in ori_map.items()}
 
     omap = ObstacleMap(obstacles, map_shape)
     move_lookup: dict[tuple[int], tuple[int]] = dict()
@@ -283,7 +286,7 @@ def part_two(file: Path) -> set[tuple[int]]:
 
     rot_m = np.array([[0, -1], [1, 0]])
 
-    while in_bounds(guard_pos+guard_ori, map_shape):
+    while in_bounds(guard_pos + guard_ori, map_shape):
 
         orientation: int = ori_map[tuple(guard_ori)]
         pose = (*tuple(guard_pos), orientation)
@@ -314,13 +317,13 @@ def part_two(file: Path) -> set[tuple[int]]:
 
                 if pose not in state_lookup:
                     orientation_ = pose[-1]
-                    next_pose = omap.next(pose[:2], (orientation_+1)%4)
+                    next_pose = omap.next(pose[:2], (orientation_ + 1) % 4)
 
                     if next_pose is not None:
-                        rot = rotation_map[(orientation_-1)%4]
-                        next_pose = (next_pose[0] + rot[0], next_pose[1] + rot[1], (orientation_+1)%4)
+                        rot = rotation_map[(orientation_ - 1) % 4]
+                        next_pose = (next_pose[0] + rot[0], next_pose[1] + rot[1], (orientation_ + 1) % 4)
 
-                    move_lookup[pose] =  next_pose
+                    move_lookup[pose] = next_pose
 
                 pose = state_lookup[pose]
 
@@ -329,6 +332,7 @@ def part_two(file: Path) -> set[tuple[int]]:
         guard_pos += guard_ori
 
     return loop_positions
+
 
 def main():
     executor = Executor(
@@ -344,8 +348,6 @@ def main():
     executor.test_two(6)
     executor.two("Loop positions")
 
+
 if __name__ == "__main__":
     main()
-
-
-

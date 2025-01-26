@@ -17,18 +17,19 @@ def inner(_it, _timer{init}):
     return _t1 - _t0, retval
 """
 
+
 def scale_time(time: float):
-    ms = round(time*1e+3,2)
+    ms = round(time * 1e+3, 2)
     if str(ms)[0] == '0':
-        return f"{round(time*1e+6,2)}μs"
+        return f"{round(time * 1e+6, 2)}μs"
 
     if str(time)[0] == '0':
         return f"{ms}ms"
 
     if time < 60:
-        return f"{round(time,2)}s"
+        return f"{round(time, 2)}s"
 
-    return f"{int(time/60)}m {int(time%60)}s"
+    return f"{int(time / 60)}m {int(time % 60)}s"
 
 
 def _test(test_file: Path, f: Callable, expected_result: int, n: int, *args):
@@ -56,7 +57,8 @@ def _execute(input_file: Path, f: Callable[[Path], Union[int, Iterable]], msg: s
 
 class Executor:
 
-    def __init__(self, test_file: Optional[Path] = None, test_file_2: Optional[Path] = None, input_file: Optional[Path] = None, f1: Optional[Callable] = None, f2: Optional[Callable] = None):
+    def __init__(self, test_file: Optional[Path] = None, test_file_2: Optional[Path] = None,
+                 input_file: Optional[Path] = None, f1: Optional[Callable] = None, f2: Optional[Callable] = None):
         self._test_file = test_file
         self._test_file_2 = test_file_2
         self._input_file = input_file

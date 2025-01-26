@@ -76,7 +76,7 @@ def part_two(file: Path) -> int:
         while i < len(seq):
 
             moves = 0
-            for k in range(i-1, -1, -1):
+            for k in range(i - 1, -1, -1):
 
                 # stop when finding the same element backwards
                 if seq[i] == seq[k]:
@@ -119,6 +119,7 @@ def main():
 
     executor.test_two(123)
     executor.two("Middle page number sum")
+
 
 if __name__ == "__main__":
     main()

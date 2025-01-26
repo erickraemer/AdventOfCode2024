@@ -8,12 +8,14 @@ from aoc.common.executor import Executor
 _REGEX = re.compile(r"p=(-?\d+),(-?\d+)\sv=(-?\d+),(-?\d+)")
 Coord = tuple[int, int]
 
+
 def read_input(file: Path) -> list[list[int]]:
     data = open(file, "r").read()
 
     data = [[int(c) for c in m] for m in _REGEX.findall(data)]
 
     return data
+
 
 def visualize(i: int, robots: list[list[int]], width: int, height: int):
     # requires numpy and opencv-python packages
@@ -34,6 +36,7 @@ def visualize(i: int, robots: list[list[int]], width: int, height: int):
     cv2.waitKey(0)
 
     cv2.destroyAllWindows()
+
 
 def part_one(file: Path, width: int = 101, height: int = 103):
     robots = read_input(file)
@@ -59,6 +62,7 @@ def part_one(file: Path, width: int = 101, height: int = 103):
     result: int = math.prod(quadrants)
     return result
 
+
 def part_two(file: Path, viz=False):
     width: int = 101
     height: int = 103
@@ -67,13 +71,14 @@ def part_two(file: Path, viz=False):
     # find first appearance, i = 1
     i: int = 1
 
-    k = int((88*width-12*height)/(width-height) + i*width*height)
+    k = int((88 * width - 12 * height) / (width - height) + i * width * height)
 
     if viz:
         robots = read_input(file)
         visualize(k, robots, width, height)
 
     return k
+
 
 def main():
     executor = Executor(
@@ -87,6 +92,7 @@ def main():
     executor.one("Safety Factor")
 
     executor.two("Easter egg")
+
 
 if __name__ == "__main__":
     main()

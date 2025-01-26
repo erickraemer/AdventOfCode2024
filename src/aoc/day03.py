@@ -39,6 +39,7 @@ def part_two(file: Path) -> int:
 
     return sum_
 
+
 def main():
     executor = Executor(
         test_file=DATA / "t03_01.txt",
@@ -53,6 +54,7 @@ def main():
 
     executor.test_two(48)
     executor.two("Product")
+
 
 if __name__ == "__main__":
     main()

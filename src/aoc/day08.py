@@ -21,13 +21,15 @@ def read_input(file: Path) -> tuple[list[list[np.ndarray]], tuple[int, int]]:
 
             antennas[c].append(np.array([x, y]))
 
-    antennas: list[list[np.ndarray]] = [v for k,v in antennas.items()]
+    antennas: list[list[np.ndarray]] = [v for k, v in antennas.items()]
     return antennas, bounds
+
 
 def in_bounds(coord: tuple, bounds: tuple) -> bool:
     assert len(coord) == len(bounds)
 
     return all(coord[i] in range(bounds[i]) for i in range(len(coord)))
+
 
 def part_one(file: Path) -> int:
     antennas, bounds = read_input(file)
@@ -36,11 +38,12 @@ def part_one(file: Path) -> int:
     for ants in antennas:
         for (a, b) in itertools.permutations(ants, 2):
 
-                t = tuple(2 * a - b)
-                if in_bounds(t, bounds):
-                    antinodes.add(t)
+            t = tuple(2 * a - b)
+            if in_bounds(t, bounds):
+                antinodes.add(t)
 
     return len(antinodes)
+
 
 def part_two(file: Path) -> int:
     antennas, bounds = read_input(file)
@@ -63,6 +66,7 @@ def part_two(file: Path) -> int:
                 q += 1
 
     return len(antinodes)
+
 
 def main():
     executor = Executor(

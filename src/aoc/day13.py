@@ -8,8 +8,8 @@ from aoc.common.executor import Executor
 
 INPUT_REGX = re.compile(r"\D+(\d+)\D+(\d+)\n\D+(\d+)\D+(\d+)\n\D+(\d+)\D+(\d+)")
 
+
 def read_input(file: Path) -> list[tuple[int, ...]]:
-    
     data = open(file, "r").read()
 
     arcades = [
@@ -18,6 +18,7 @@ def read_input(file: Path) -> list[tuple[int, ...]]:
     ]
 
     return arcades
+
 
 def binary_search(a_vec: np.ndarray, b_vec: np.ndarray, goal: np.ndarray) -> np.ndarray:
     """
@@ -29,6 +30,7 @@ def binary_search(a_vec: np.ndarray, b_vec: np.ndarray, goal: np.ndarray) -> np.
     :param goal: goal vector
     :return: (a presses, b presses) if a solution exists else (0,0)
     """
+
     def error(a_):
         b_: np.ndarray = (goal - (a_ * a_vec)) / b_vec
         return abs(b_[0] - b_[1])
@@ -60,6 +62,7 @@ def binary_search(a_vec: np.ndarray, b_vec: np.ndarray, goal: np.ndarray) -> np.
         else:
             lower_bound = lower_bound + m
 
+
 def brute_force(file: Path, pt_two: bool = False):
     """
     Brute force binary search approach
@@ -75,11 +78,11 @@ def brute_force(file: Path, pt_two: bool = False):
 
     presses = np.empty((len(data), 2))
     for i in range(len(data)):
-
         presses[i] = binary_search(A[i], B[i], G[i])
 
     result = int(np.sum(presses * np.array([3, 1])).item())
     return result
+
 
 def adj(m: np.ndarray):
     a = np.empty_like(m)
@@ -90,6 +93,7 @@ def adj(m: np.ndarray):
     a[:, 1, 1] = m[:, 0, 0]
 
     return a
+
 
 def equation_based(file: Path, pt_two: bool = False):
     data = read_input(file)
@@ -132,17 +136,22 @@ def equation_based(file: Path, pt_two: bool = False):
 
     return result
 
+
 def part_one_bf(file: Path):
     return brute_force(file)
+
 
 def part_one_eq(file: Path):
     return equation_based(file)
 
+
 def part_two_bf(file: Path):
     return brute_force(file, True)
 
+
 def part_two_eq(file: Path):
     return equation_based(file, True)
+
 
 def main():
     executor_bf = Executor(
@@ -170,4 +179,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -71,6 +71,7 @@ def part_two(file: Path):
 
     return safe_reports
 
+
 def main():
     executor = Executor(
         test_file=DATA / "t02.txt",
@@ -84,6 +85,7 @@ def main():
 
     executor.test_two(4)
     executor.two("Safe Reports")
+
 
 if __name__ == "__main__":
     main()

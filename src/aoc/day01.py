@@ -41,7 +41,6 @@ def part_one(file: Path):
     return distance
 
 
-
 def part_two(file: Path):
     l1, l2 = read_input(file)
 
@@ -73,6 +72,6 @@ def main():
     executor.test_two(31)
     executor.two("Similarity Score")
 
+
 if __name__ == "__main__":
     main()
-

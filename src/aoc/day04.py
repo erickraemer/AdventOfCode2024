@@ -107,6 +107,7 @@ def part_two(file: Path):
 
     return appearances
 
+
 def main():
     executor = Executor(
         test_file=DATA / "t04.txt",
@@ -120,6 +121,7 @@ def main():
 
     executor.test_two(9)
     executor.two("X-MAS Appearances")
+
 
 if __name__ == "__main__":
     main()

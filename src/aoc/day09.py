@@ -5,11 +5,11 @@ from src.aoc.common.executor import Executor
 
 
 def read_input(file: Path) -> list[int]:
-
     data = open(file, "r").read()
     array = [int(c) for c in data]
 
     return array
+
 
 def part_one(file: Path):
     array = read_input(file)
@@ -52,14 +52,14 @@ def part_two(file: Path):
     for i, ic in enumerate(array):
         if i % 2 == 0:
             # start, size, id
-            files.append([csum, int(ic), i//2])
+            files.append([csum, int(ic), i // 2])
         else:
             # start, size, id
             spaces.append([csum, int(ic), '.'])
         csum += ic
 
     # sort
-    for k in range(len(files)-1, -1, -1):
+    for k in range(len(files) - 1, -1, -1):
         file = files[k]
 
         i = 0
@@ -83,7 +83,7 @@ def part_two(file: Path):
             i += 1
 
     unpacked = [
-        t[2]  for t in sorted(spaces + files, key=lambda x: x[0]) for _ in range(t[1])
+        t[2] for t in sorted(spaces + files, key=lambda x: x[0]) for _ in range(t[1])
     ]
 
     # calculate checksum
@@ -105,6 +105,7 @@ def main():
 
     executor.test_two(2858)
     executor.two("Checksum")
+
 
 if __name__ == "__main__":
     main()

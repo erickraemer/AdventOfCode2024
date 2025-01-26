@@ -17,13 +17,14 @@ def read_input(file: Path) -> np.ndarray:
 
     return arr
 
+
 def in_bounds(coord: tuple, bounds: tuple) -> bool:
     assert len(coord) == len(bounds)
 
     return all(coord[i] in range(bounds[i]) for i in range(len(coord)))
 
-def part_one_rec(data: np.ndarray, index: tuple[int, int], visited: Optional[set[tuple[int, int]]]) -> int:
 
+def part_one_rec(data: np.ndarray, index: tuple[int, int], visited: Optional[set[tuple[int, int]]]) -> int:
     if visited is not None:
         if index in visited:
             return 0
@@ -35,7 +36,7 @@ def part_one_rec(data: np.ndarray, index: tuple[int, int], visited: Optional[set
         return 1
 
     sum_: int = 0
-    for c in ((0,1), (1,0), (-1,0), (0,-1)):
+    for c in ((0, 1), (1, 0), (-1, 0), (0, -1)):
         next_ = tuple(np.array(index) + np.array(c))
 
         if not in_bounds(next_, data.shape):
@@ -47,6 +48,7 @@ def part_one_rec(data: np.ndarray, index: tuple[int, int], visited: Optional[set
         sum_ += part_one_rec(data, next_, visited)
 
     return sum_
+
 
 def common_part(file: Path, task_one: bool) -> int:
     data = read_input(file)
@@ -68,11 +70,14 @@ def common_part(file: Path, task_one: bool) -> int:
 
     return sum_
 
+
 def part_one(file: Path):
     return common_part(file, True)
 
+
 def part_two(file: Path):
     return common_part(file, False)
+
 
 def main():
     executor = Executor(
@@ -87,6 +92,7 @@ def main():
 
     executor.test_two(81)
     executor.two("Checksum")
+
 
 if __name__ == "__main__":
     main()
