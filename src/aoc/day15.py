@@ -4,8 +4,16 @@ from aoc import DATA
 from aoc.common.executor import Executor
 
 Coord = tuple[int, int]
+Map = list[list[chr]]
 
-def read_input(file: Path) -> tuple[list[list[chr]], Coord, str]:
+MOVE_MAP = {
+    '<': (-1, 0),
+    '^': (0, -1),
+    '>': (1, 0),
+    'v': (0, 1)
+}
+
+def read_input(file: Path) -> tuple[Map, Coord, str]:
     data = open(file, "r").read()
 
     map_, movement = data.split("\n\n")
@@ -23,33 +31,30 @@ def read_input(file: Path) -> tuple[list[list[chr]], Coord, str]:
 
     return map_, pos, movement
 
-def walk(map_: list[list[chr]], x: int, y: int, vx: int, vy: int):
+
+def shift(map_: Map, x: int, y: int, vx: int, vy: int) -> bool:
     """
-    walk in a straight line until '#' or '.' is found and return the position
+    Shift 'O' boxes in (vx, vy) direction inplace if possible
     """
+    c: chr = map_[y][x]
 
-    while True:
-        x, y = x + vx, y + vy
+    if c == '#':
+        return False
 
-        if map_[y][x] in {'#', '.'}:
-            return x, y
+    if c == '.':
+        return True
 
-def shift(map_: list[list[chr]], x1: int, y1: int, x2: int, y2: int, vx: int, vy: int):
-    """
-    Shift all characters of the map between (x1, y1) and (x2, y2) by one
-    """
+    xn, yn = x+vx, y+vy
+    rec: bool = shift(map_, xn, yn, vx, vy)
 
-    if x1 > x2:
-        x1, x2 = x2, x1
+    if rec:
+        # swap
+        map_[y][x], map_[yn][xn] =  map_[yn][xn], map_[y][x]
 
-    if y1 > y2:
-        y1, y2 = y2, y1
+    return rec
 
-    buffer = [map_[y_][x_] for y_ in range(y1, y2+1) for x_ in range(x1, x2+1)]
-    for i, c in enumerate(buffer):
-        map_[y1 + (i + 1 * vy) % (y2 + 1 - y1)][x1 + (i + 1 * vx) % (x2 + 1 - x1)] = c
 
-def box_sum(map_: list[list[chr]], c: chr):
+def box_sum(map_: Map, c: chr) -> int:
     sum_ = 0
     for y in range(len(map_)):
         for x in range(len(map_[y])):
@@ -58,35 +63,24 @@ def box_sum(map_: list[list[chr]], c: chr):
 
     return sum_
 
-def part_one(file: Path):
-    map_, pos, movement = read_input(file)
 
-    move_map = {
-        '<': (-1, 0),
-        '^': (0, -1),
-        '>': (1, 0),
-        'v': (0, 1)
-    }
+def part_one(file: Path) -> int:
+    map_, pos, movement = read_input(file)
 
     for m in movement:
         x, y = pos
-        vx, vy = move_map[m]
+        vx, vy = MOVE_MAP[m]
         xn, yn = x+vx, y+vy
-
-        if map_[yn][xn] == '#':
-            continue
 
         if map_[yn][xn] == '.':
             map_[y][x], map_[yn][xn] = map_[yn][xn], map_[y][x]
 
         elif map_[yn][xn] == 'O':
-            px, py = walk(map_, xn, yn, vx, vy)
-
-            if map_[py][px] == '#':
+            if not shift(map_, x, y, vx, vy):
                 continue
 
-            if map_[py][px] == '.':
-                shift(map_, x,y,px,py,vx,vy)
+        else:
+            continue
 
         pos = xn, yn
 
@@ -94,107 +88,91 @@ def part_one(file: Path):
 
     return sum_
 
-def widen(map_: list[list[chr]]):
+def widen(map_: Map):
     """
-    Widens the map for part two
+    Widens the map inplace for part two
     """
-    widened = []
+
+    w_map = {
+        '#': '#',
+        'O': ']',
+        '.': '.',
+        '@': '.'
+    }
 
     for l in map_:
-        wl = []
-        for c in l:
+        for i in range(len(l)):
+            k: int = i * 2
+            c: chr = l[k]
 
-            if c == '#':
-                wl.extend(['#', '#'])
-            elif c == 'O':
-                wl.extend(['[', ']'])
-            elif c == '.':
-                wl.extend(['.', '.'])
-            elif c == '@':
-                wl.extend(['@', '.'])
-        widened.append(wl)
+            if c == 'O':
+                l[k] = '['
 
-    return widened
+            l.insert(k + 1, w_map[c])
 
-def walk_rec(map_: list[list[chr]], x: int, y: int, vy: int):
+def shift_iter(map_: Map, x: int, y: int, vy: int):
     """
-    Checks if boxes are moveable in the direction of vy on the y-axis
-    :return True if moveable else False
+    Shift '[]' boxes in vy direction inplace along the y-axis if possible
     """
+    open_ = [(x, y+vy)]
+    closed = {(x,y): None}
 
-    c = map_[y][x]
+    while open_:
+        x, y = open_.pop(0)
+        c = map_[y][x]
 
-    if c == '#':
-        return False
+        if (x, y) in closed:
+            continue
 
-    if c == '.':
-        return True
+        if c == '#':
+            return False
 
-    d = 1 if c == '[' else -1
-    return all([
-        walk_rec(map_, x, y+vy, vy),
-        walk_rec(map_, x+d, y+vy, vy)
-    ])
+        if c == '.':
+            continue
 
-def shift_rec(map_: list[list[chr]], x: int, y: int, vy: int):
-    """
-    Recursively shifts all boxes in the direction of vy on the y-axis
-    """
+        xn, yn = x + (1 if map_[y][x] == '[' else -1), y + vy
 
-    def _rec(x_, y_):
-        cn = map_[y_ + vy][x_]
+        open_.append((x, yn))
+        if map_[yn][x] != c:
+            open_.append((xn, y+vy))
 
-        if cn != '.':
-            shift_rec(map_, x_, y_ + vy, vy)
+        # since python 3.7+ dicts keep the insertion order
+        closed[(x, y)] = None
+        closed[(xn, y)] = None
 
-        map_[y_][x_], map_[y_ + vy][x_] = map_[y_ + vy][x_], map_[y_][x_]
+    for (x,y) in reversed(closed.keys()):
+        # swap
+        map_[y][x], map_[y + vy][x] = map_[y + vy][x], map_[y][x]
 
-    d = 1 if map_[y][x] == '[' else -1
-    _rec(x, y)
-    _rec(x+d, y)
+    return True
+
 
 def part_two(file: Path):
     map_, pos, movement = read_input(file)
 
-    map_ = widen(map_)
+    widen(map_)
     # adjust position
     pos = pos[0] * 2, pos[1]
 
-    move_map = {
-        '<': (-1, 0),
-        '^': (0, -1),
-        '>': (1, 0),
-        'v': (0, 1)
-    }
+    brackets = {'[', ']'}
 
     for m in movement:
         x, y = pos
-        vx, vy = move_map[m]
+        vx, vy = MOVE_MAP[m]
         xn, yn = x + vx, y + vy
-
-        if map_[yn][xn] == '#':
-            continue
 
         if map_[yn][xn] == '.':
             map_[y][x], map_[yn][xn] = map_[yn][xn], map_[y][x]
 
-        elif map_[yn][xn] in ('[', ']'):
+        elif map_[yn][xn] in brackets:
+            if vy == 0 and not shift(map_, x, y, vx, vy):
+                continue
 
-            if vy == 0:
-                px, py = walk(map_, xn, yn, vx, vy)
+            if vx == 0 and not shift_iter(map_, x, y, vy):
+                continue
 
-                if map_[py][px] == '#':
-                    continue
-
-                if map_[py][px] == '.':
-                    shift(map_, x, y, px, py, vx, vy)
-
-            elif vx == 0:
-                if not walk_rec(map_, xn, yn, vy):
-                    continue
-
-                shift_rec(map_, xn, yn, vy)
-                map_[y][x], map_[yn][xn] = map_[yn][xn], map_[y][x]
+        else:
+            continue
 
         pos = xn, yn
 
