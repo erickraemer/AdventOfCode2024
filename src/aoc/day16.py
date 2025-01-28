@@ -1,12 +1,28 @@
 from pathlib import Path
 from queue import PriorityQueue
-from typing import Optional
+from typing import Optional, Final
 
 from aoc import DATA
 from aoc.common.executor import Executor
 
 Coord = tuple[int, int]
+Mat = tuple[int, int, int, int]
 Map = list[list[chr]]
+
+# Left, straight, right rotations matrices
+LSR_ROT: Final[list[Mat]] = [
+    (0, 1, -1, 0),  # turn left
+    (1, 0, 0, 1),   # straight (identity)
+    (0, -1, 1, 0),  # turn right
+]
+
+# cross offset values
+CROSS: Final[list[Coord]] = [
+    (0, 1),  # up
+    (1, 0),  # right
+    (0, -1), # down
+    (-1, 0)  # left
+]
 
 def read_input(file: Path) -> tuple[Map, Coord]:
     data = open(file, "r").read()
@@ -20,24 +36,14 @@ def read_input(file: Path) -> tuple[Map, Coord]:
 
     return map_, start
 
-def part_one(file: Path):
-    map_, start = read_input(file)
+def dijkstra(map_: Map, start: Coord):
 
     open_ = PriorityQueue()
     open_.put((0, start, (1, 0)))
     closed = dict()
 
-    cross = [
-        (1, 0, 0, 1),
-        (0, 1, -1, 0),
-        (0, -1, 1, 0),
-    ]
-
     while not open_.empty():
         cost, (x, y), (xv, yv) = open_.get_nowait()
-
-        if map_[y][x] == 'E':
-            return cost
 
         if (x, y) in closed:
             if cost >= closed[(x, y)]:
@@ -45,7 +51,10 @@ def part_one(file: Path):
 
         closed[(x,y)] = cost
 
-        for (a, b, c, d) in cross:
+        if map_[y][x] == 'E':
+            return cost, (x,y), closed
+
+        for (a, b, c, d) in LSR_ROT:
             xvn, yvn = xv * a + yv * b, xv * c + yv * d
             xn, yn = x + xvn, y+ yvn
 
@@ -63,99 +72,65 @@ def part_one(file: Path):
 
     return None
 
-def reverse(x: int, y: int, cost: int, costs: dict[Coord, int], end: Coord):
+def part_one(file: Path):
+    cost = dijkstra(*read_input(file))[0]
+    return cost
 
-    cross = [
-        (0, 1),
-        (1, 0),
-        (0, -1),
-        (-1, 0)
-    ]
+
+def walk_reverse_rec(x: int, y: int, xv: int, yv: int, costs: dict[Coord, int], end: Coord, tiles: set[Coord]):
+
+    # constants: costs, end, tiles
+    def rec(x_: int, y_: int, xv_: int, yv_: int):
+        tiles.add((x_, y_))
+
+        if (x_, y_) == end:
+            return
+
+        # Check straight, left and right turn
+        for (a_, b_, c_, d_) in LSR_ROT:
+            xvn_, yvn_ = xv_ * a_ + yv_ * b_, xv_ * c_ + yv_ * d_
+            xn_, yn_ = x_ + xvn_, y_ + yvn_
+
+            if (xn_, yn_) not in costs:
+                continue
+
+            cost_: int = costs[(x_, y_)]
+            if (xv_, yv_) == (xvn_, yvn_):
+                # ignore turn penalty on direction change
+                cost_ += 1000
+
+            if costs[(xn_, yn_)] >= cost_:
+                continue
+
+            rec(xn_, yn_, xvn_, yvn_)
+
+    rec(x,y,xv,yv)
+
+def walk_reverse(x: int, y: int, costs: dict[Coord, int], end: Coord):
+    """
+    Walk backwards from end to start, taking every path which monotonically decreases.
+    """
 
     tiles = {(x,y)}
 
-    for (xv, yv) in cross:
+    # Check every direction
+    for (xv, yv) in CROSS:
         xn, yn = x+xv, y+yv
 
         if (xn, yn) not in costs:
             continue
 
-        if costs[(xn, yn)] >= cost:
+        if costs[(xn, yn)] >= costs[(x, y)]:
             continue
 
-        reverse_rec(xn, yn, xv, yv, costs[(xn, yn)], costs, end, tiles)
+        walk_reverse_rec(xn, yn, xv, yv, costs, end, tiles)
 
     return tiles
 
-def reverse_rec(x: int, y: int, xv: int, yv: int, cost: int, costs: dict[Coord, int], end: Coord, tiles: set[Coord]):
-
-    tiles.add((x,y))
-
-    if (x,y) == end:
-        return
-
-    cross = [
-        (1, 0, 0, 1),
-        (0, 1, -1, 0),
-        (0, -1, 1, 0),
-    ]
-
-    for (a, b, c, d) in cross:
-        xvn, yvn = xv * a + yv * b, xv * c + yv * d
-        xn, yn = x + xvn, y + yvn
-
-        if (xn, yn) not in costs:
-            continue
-
-        if costs[(xn, yn)] >= cost + int((xv, yv) == (xvn, yvn)) * 1000:
-            continue
-
-        reverse_rec(xn, yn, xvn, yvn, costs[(xn, yn)], costs, end, tiles)
-
 def part_two(file: Path):
     map_, start = read_input(file)
-
-    open_ = PriorityQueue()
-    open_.put((0, start, (1, 0)))
-    closed = dict()
-
-    cross = [
-        (1, 0, 0, 1),
-        (0, 1, -1, 0),
-        (0, -1, 1, 0),
-    ]
-
-    end: Optional[Coord] = None
-    while not open_.empty():
-        cost, (x, y), (xv, yv) = open_.get_nowait()
-
-        if map_[y][x] == 'E':
-            end = (x, y)
-
-        if (x, y) in closed:
-            if cost >= closed[(x, y)]:
-                continue
-
-        closed[(x, y)] = cost
-
-        for (a, b, c, d) in cross:
-            xvn, yvn = xv * a + yv * b, xv * c + yv * d
-            xn, yn = x + xvn, y + yvn
-
-            if (xn, yn) in closed:
-                continue
-
-            if map_[yn][xn] == '#':
-                continue
-
-            cn = cost + 1 + int((xv, yv) != (xvn, yvn)) * 1000
-
-            open_.put_nowait(
-                (cn, (xn, yn), (xvn, yvn))
-            )
-
-    ex, ey = end
-    tiles = reverse(ex, ey, closed[end], closed, start)
+    _, (x, y), costs = dijkstra(map_, start)
+    tiles = walk_reverse(x, y, costs, start)
 
     return len(tiles)
 
