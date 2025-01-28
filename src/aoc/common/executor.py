@@ -5,6 +5,10 @@ from numbers import Real
 from pathlib import Path
 from typing import Union, Iterable, Optional
 
+# init logger
+logging.basicConfig(level=logging.INFO)
+
+# benchmark runs
 _REPEATS = 10
 
 timeit.template = """
@@ -32,11 +36,11 @@ def scale_time(time: float):
     return f"{int(time / 60)}m {int(time % 60)}s"
 
 
-def _test(test_file: Path, f: Callable, expected_result: int, n: int, *args):
+def _test(test_file: Path, f: Callable, expected_result: Union[int, str], n: int, *args):
     time, ret = timeit.Timer(lambda: f(test_file, *args)).timeit(_REPEATS)
     time /= _REPEATS
 
-    if not isinstance(ret, Real):
+    if not isinstance(ret, Real) and isinstance(expected_result, int):
         ret = len(ret)
 
     if ret != expected_result:
@@ -49,7 +53,7 @@ def _execute(input_file: Path, f: Callable[[Path], Union[int, Iterable]], msg: s
     time, ret = timeit.Timer(lambda: f(input_file, *args)).timeit(_REPEATS)
     time /= _REPEATS
 
-    if not isinstance(ret, Real):
+    if not (isinstance(ret, Real) or isinstance(ret, str)):
         ret = len(ret)
 
     print(f"{msg}:\n\t- result: {ret}\n\t- runs: {_REPEATS}\n\t- avg time: {scale_time(time)}\n")
@@ -65,14 +69,14 @@ class Executor:
         self._f1 = f1
         self._f2 = f2
 
-    def test_one(self, expected_result: int, *args):
+    def test_one(self, expected_result: Union[int, str], *args):
         if not self._test_file.is_file():
             logging.warning(f"Test: {self._test_file} not found!")
             return
 
         _test(self._test_file, self._f1, expected_result, 1, *args)
 
-    def test_two(self, expected_result: int, *args):
+    def test_two(self, expected_result: Union[int, str], *args):
         test_file = self._test_file_2 if self._test_file_2 is not None else self._test_file
 
         if not test_file.is_file():
