@@ -1,6 +1,6 @@
 from pathlib import Path
 from queue import PriorityQueue
-from typing import Optional, Final
+from typing import Final
 
 from aoc import DATA
 from aoc.common.executor import Executor
@@ -12,7 +12,7 @@ Map = list[list[chr]]
 # Left, straight, right rotations matrices
 LSR_ROT: Final[list[Mat]] = [
     (0, 1, -1, 0),  # turn left
-    (1, 0, 0, 1),   # straight (identity)
+    (1, 0, 0, 1),  # straight (identity)
     (0, -1, 1, 0),  # turn right
 ]
 
@@ -20,9 +20,10 @@ LSR_ROT: Final[list[Mat]] = [
 CROSS: Final[list[Coord]] = [
     (0, 1),  # up
     (1, 0),  # right
-    (0, -1), # down
+    (0, -1),  # down
     (-1, 0)  # left
 ]
+
 
 def read_input(file: Path) -> tuple[Map, Coord]:
     data = open(file, "r").read()
@@ -36,8 +37,8 @@ def read_input(file: Path) -> tuple[Map, Coord]:
 
     return map_, start
 
-def dijkstra(map_: Map, start: Coord):
 
+def dijkstra(map_: Map, start: Coord):
     open_ = PriorityQueue()
     open_.put((0, start, (1, 0)))
     closed = dict()
@@ -49,14 +50,14 @@ def dijkstra(map_: Map, start: Coord):
             if cost >= closed[(x, y)]:
                 continue
 
-        closed[(x,y)] = cost
+        closed[(x, y)] = cost
 
         if map_[y][x] == 'E':
-            return cost, (x,y), closed
+            return cost, (x, y), closed
 
         for (a, b, c, d) in LSR_ROT:
             xvn, yvn = xv * a + yv * b, xv * c + yv * d
-            xn, yn = x + xvn, y+ yvn
+            xn, yn = x + xvn, y + yvn
 
             if (xn, yn) in closed:
                 continue
@@ -72,13 +73,13 @@ def dijkstra(map_: Map, start: Coord):
 
     return None
 
+
 def part_one(file: Path):
     cost = dijkstra(*read_input(file))[0]
     return cost
 
 
-def walk_reverse_rec(x: int, y: int, xv: int, yv: int, costs: dict[Coord, int], end: Coord, tiles: set[Coord]):
-
+def walk_downhill_rec(x: int, y: int, xv: int, yv: int, costs: dict[Coord, int], end: Coord, tiles: set[Coord]):
     # constants: costs, end, tiles
     def rec(x_: int, y_: int, xv_: int, yv_: int):
         tiles.add((x_, y_))
@@ -104,18 +105,19 @@ def walk_reverse_rec(x: int, y: int, xv: int, yv: int, costs: dict[Coord, int], 
 
             rec(xn_, yn_, xvn_, yvn_)
 
-    rec(x,y,xv,yv)
+    rec(x, y, xv, yv)
 
-def walk_reverse(x: int, y: int, costs: dict[Coord, int], end: Coord):
+
+def walk_downhill(x: int, y: int, costs: dict[Coord, int], end: Coord):
     """
     Walk backwards from end to start, taking every path which monotonically decreases.
     """
 
-    tiles = {(x,y)}
+    tiles = {(x, y)}
 
     # Check every direction
     for (xv, yv) in CROSS:
-        xn, yn = x+xv, y+yv
+        xn, yn = x + xv, y + yv
 
         if (xn, yn) not in costs:
             continue
@@ -123,16 +125,18 @@ def walk_reverse(x: int, y: int, costs: dict[Coord, int], end: Coord):
         if costs[(xn, yn)] >= costs[(x, y)]:
             continue
 
-        walk_reverse_rec(xn, yn, xv, yv, costs, end, tiles)
+        walk_downhill_rec(xn, yn, xv, yv, costs, end, tiles)
 
     return tiles
+
 
 def part_two(file: Path):
     map_, start = read_input(file)
     _, (x, y), costs = dijkstra(map_, start)
-    tiles = walk_reverse(x, y, costs, start)
+    tiles = walk_downhill(x, y, costs, start)
 
     return len(tiles)
+
 
 def main():
     executor = Executor(
